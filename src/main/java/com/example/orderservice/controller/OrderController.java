@@ -41,6 +41,9 @@ public class OrderController {
         OrderDto createdOrder = orderService.createOrder(orderDto);
         OrderResponse orderResponse = new ModelMapper().map(createdOrder, OrderResponse.class);
 
+        if (orderResponse == null){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(orderResponse);
+        }
         return ResponseEntity.status(HttpStatus.OK).body(orderResponse);
     }
 
