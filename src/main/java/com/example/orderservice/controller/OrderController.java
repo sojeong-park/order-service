@@ -2,6 +2,7 @@ package com.example.orderservice.controller;
 
 import com.example.orderservice.domain.Order;
 import com.example.orderservice.dto.OrderDto;
+import com.example.orderservice.messageQueue.KafkaProducer;
 import com.example.orderservice.service.OrderService;
 import com.example.orderservice.vo.OderRequest;
 import com.example.orderservice.vo.OrderResponse;
@@ -20,10 +21,12 @@ import java.util.List;
 public class OrderController {
     private Environment env;
     private OrderService orderService;
+    private KafkaProducer kafkaProducer;
 
-    public OrderController(Environment env, OrderService orderService) {
+    public OrderController(Environment env, OrderService orderService, KafkaProducer kafkaProducer) {
         this.env = env;
         this.orderService = orderService;
+        this.kafkaProducer = kafkaProducer;
     }
 
     @GetMapping("/health-check")
@@ -44,6 +47,10 @@ public class OrderController {
         if (orderResponse == null){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(orderResponse);
         }
+
+        /* kafka producer message send */
+        kafkaProducer.send("catalog-topic", orderDto);
+
         return ResponseEntity.status(HttpStatus.OK).body(orderResponse);
     }
 
