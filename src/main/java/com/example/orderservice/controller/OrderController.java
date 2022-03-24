@@ -1,8 +1,10 @@
 package com.example.orderservice.controller;
 
 import com.example.orderservice.domain.Order;
+import com.example.orderservice.dto.KafkaOrderDto;
 import com.example.orderservice.dto.OrderDto;
 import com.example.orderservice.messageQueue.KafkaProducer;
+import com.example.orderservice.messageQueue.OrderProducer;
 import com.example.orderservice.service.OrderService;
 import com.example.orderservice.vo.OderRequest;
 import com.example.orderservice.vo.OrderResponse;
@@ -22,11 +24,14 @@ public class OrderController {
     private Environment env;
     private OrderService orderService;
     private KafkaProducer kafkaProducer;
+    private OrderProducer orderProducer;
 
-    public OrderController(Environment env, OrderService orderService, KafkaProducer kafkaProducer) {
+    public OrderController(Environment env, OrderService orderService, KafkaProducer kafkaProducer
+                            , OrderProducer orderProducer) {
         this.env = env;
         this.orderService = orderService;
         this.kafkaProducer = kafkaProducer;
+        this.orderProducer = orderProducer;
     }
 
     @GetMapping("/health-check")
@@ -41,16 +46,21 @@ public class OrderController {
         OrderDto orderDto = new ModelMapper().map(orderRequest, OrderDto.class);
         orderDto.setUserId(userId);
 
-        OrderDto createdOrder = orderService.createOrder(orderDto);
+        /*OrderDto createdOrder = orderService.createOrder(orderDto);
         OrderResponse orderResponse = new ModelMapper().map(createdOrder, OrderResponse.class);
 
         if (orderResponse == null){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(orderResponse);
-        }
+        }*/
+
+        /*kafka*/
+        Order order = new Order(orderDto);
 
         /* kafka producer message send */
-        kafkaProducer.send("catalog-topic", orderDto);
+        kafkaProducer.send("catalog-topic", orderDto); // 주문 수량을 catalog-service 로 전달하여 동기화
+        orderProducer.send("orders", orderDto); // 주문 정보를 orders 라는 kafka topic으로 전달하여 데이터 동기화
 
+        OrderResponse orderResponse = new ModelMapper().map(order, OrderResponse.class);
         return ResponseEntity.status(HttpStatus.OK).body(orderResponse);
     }
 

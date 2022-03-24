@@ -14,8 +14,12 @@ spring:
     hibernate:
       ddl-auto: update
   datasource:
-    driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:testdb
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/testdb?serverTimezone=UTC&characterEncoding=UTF-8
+    username: root
+    password: qwert12345
+#    driver-class-name: org.h2.Driver
+#    url: jdbc:h2:mem:testdb
 
 eureka:
   instance:
@@ -24,4 +28,8 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: http://3.39.94.98:8761/eureka
+
+logging:
+  level:
+    com.example.orderservice: Debug
